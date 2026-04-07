@@ -195,6 +195,7 @@ In particular:
 - **BrowserAI** helped make the direction legible by showing what local AI execution in the browser can look like.
 - **Psyche by Nous Research** helped frame the coordination side of internet-scale, distributed participation.
 - **WebTorrent and the browser P2P ecosystem** helped validate the transport layer assumptions behind browser-friendly swarm delivery.
+- **nullroom.io** adds a useful reference point for ephemeral, peer-to-peer, privacy-oriented communication patterns on the web.
 
 This repository is an independent template and is **not affiliated with, endorsed by, or a fork of** those projects.
 It is a small attempt to make the shared architectural pattern easier to study, discuss, and reuse.
