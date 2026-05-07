@@ -273,15 +273,15 @@ This project is inspired by adjacent work exploring browser-native AI, distribut
 
 In particular:
 
-- **WebLLM** (MLC-AI) demonstrated that browser inference can retain ~80% of native GPU performance.
-- **LARQL** (Chris Hay) proved that attention/FFN decoupling and MoE expert sharding work in production, with CPU-only FFN serving.
-- **LLMlet** showed that P2P distributed LLM inference across browser tabs via WebRTC is achievable.
-- **BrowserAI** made browser AI accessible at the npm install level.
-- **Psyche by Nous Research** framed the coordination side of internet-scale, distributed participation and completed the largest distributed pre-training run ever.
-- **WebTorrent and the browser P2P ecosystem** validated the transport layer assumptions behind browser-friendly swarm delivery.
-- **nullroom.io** demonstrated production-grade browser P2P with post-quantum E2EE.
-- **BIM** proposed a browser-native tokenized inference mesh with tolerance-aware consensus.
-- **FlareLLM** showed a single Rust/WASM codebase can do browser inference with P2P primitives.
+- [**WebLLM**](https://github.com/mlc-ai/web-llm) (MLC-AI) demonstrated that browser inference can retain ~80% of native GPU performance.
+- [**LARQL**](https://github.com/chrishayuk/larql) (Chris Hay) proved that attention/FFN decoupling and MoE expert sharding work in production, with CPU-only FFN serving.
+- [**LLMlet**](https://github.com/ktock/llmlet) showed that P2P distributed LLM inference across browser tabs via WebRTC is achievable.
+- [**BrowserAI**](https://github.com/sauravpanda/BrowserAI) made browser AI accessible at the npm install level.
+- [**Psyche by Nous Research**](https://nousresearch.com/the-next-phase-of-psyche) framed the coordination side of internet-scale, distributed participation and completed the largest distributed pre-training run ever.
+- [**WebTorrent**](https://github.com/webtorrent/webtorrent) and the browser P2P ecosystem validated the transport layer assumptions behind browser-friendly swarm delivery.
+- [**nullroom.io**](https://github.com/nullroomio/nullroom.io) demonstrated production-grade browser P2P with post-quantum E2EE.
+- [**BIM**](https://tangerine-crumble-635998.netlify.app/) proposed a browser-native tokenized inference mesh with tolerance-aware consensus.
+- [**FlareLLM**](https://github.com/sauravpanda/flarellm) showed a single Rust/WASM codebase can do browser inference with P2P primitives.
 
 This repository is an independent template and is **not affiliated with, endorsed by, or a fork of** those projects.
 
