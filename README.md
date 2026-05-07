@@ -7,6 +7,7 @@ Browser-native AI through peer-assisted distribution, local inference, split inf
 | Document | Purpose |
 |----------|---------|
 | [WHITEPAPER.md](WHITEPAPER.md) | Full architectural white paper |
+| [PROTOCOL.md](PROTOCOL.md) | Protocol overview — bootstrap, discovery, sessions, leases, split inference routing |
 | [SPEC.md](SPEC.md) | Specification draft — protocol objects, peer lifecycle, integrity rules |
 | [ROADMAP.md](ROADMAP.md) | Development phases and milestones |
 | [VALIDATION.md](VALIDATION.md) | Technical assumption validation against current browser capabilities |
@@ -165,6 +166,7 @@ browser-swarm-ai/
   README.md
   LICENSE
   WHITEPAPER.md
+  PROTOCOL.md
   SPEC.md
   ROADMAP.md
   VALIDATION.md
