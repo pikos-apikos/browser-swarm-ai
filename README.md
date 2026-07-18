@@ -112,6 +112,21 @@ Responsible for local execution. Detects environment, loads models, executes wor
 - adapter loading and hot-swapping
 - fallback behavior
 
+### LiteRT.js Runtime Path
+
+[LiteRT.js](https://developers.google.com/edge/litert/web) is a strong candidate for the first local-inference backend. Google's web runtime executes `.tflite` models in the browser through a unified API and can target:
+
+- WebGPU for GPU acceleration
+- WebNN as browser support for GPU and NPU execution matures
+- WebAssembly with XNNPack for broad CPU compatibility
+- automatic CPU fallback for operators unsupported by the selected accelerator
+
+LiteRT.js can load a model from a `Uint8Array`, which fits the swarm architecture directly: model chunks can be discovered and transferred independently, verified by content hash, reconstructed locally, and passed to the runtime without requiring a conventional model URL.
+
+Its conversion toolchain accepts models originating in PyTorch, JAX, and TensorFlow while preserving the common `.tflite` artifact format. This gives Browser Swarm AI a practical runtime path without coupling the transport or manifest protocols to one training framework.
+
+LiteRT.js does not replace the runtime abstraction. It should be implemented as one backend behind `runtime-browser`, alongside possible WebLLM, Transformers.js, or WASM-native backends. The swarm protocol describes artifacts and capabilities; the selected runtime determines how a compatible artifact is compiled and executed locally.
+
 ### Layer 4 — Coordination
 Responsible for optional multi-peer orchestration. Becomes increasingly necessary as workloads become distributed.
 
@@ -273,6 +288,7 @@ This project is inspired by adjacent work exploring browser-native AI, distribut
 
 In particular:
 
+- [**LiteRT.js**](https://developers.google.com/edge/litert/web) (Google AI Edge) provides a production-oriented browser runtime for `.tflite` models across WebGPU, WebNN, and WebAssembly/XNNPack, including direct loading from verified in-memory bytes.
 - [**WebLLM**](https://github.com/mlc-ai/web-llm) (MLC-AI) demonstrated that browser inference can retain ~80% of native GPU performance.
 - [**LARQL**](https://github.com/chrishayuk/larql) (Chris Hay) proved that attention/FFN decoupling and MoE expert sharding work in production, with CPU-only FFN serving.
 - [**LLMlet**](https://github.com/ktock/llmlet) showed that P2P distributed LLM inference across browser tabs via WebRTC is achievable.
