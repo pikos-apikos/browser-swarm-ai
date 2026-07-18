@@ -19,6 +19,7 @@ app.innerHTML = `
 let store: VerifiedChunkStore | undefined;
 let swarm: PeerSwarm | undefined;
 let modelBytes: Uint8Array | undefined;
+let runtimeProfile: Awaited<ReturnType<typeof fetchManifest>>["runtime"];
 const logElement = element<HTMLPreElement>("log");
 
 element<HTMLButtonElement>("bootstrap").onclick = () => void load(false);
@@ -29,6 +30,7 @@ async function load(peerFirst: boolean): Promise<void> {
   try {
     swarm?.close();
     const manifest = await fetchManifest(value("manifest"));
+    runtimeProfile = manifest.runtime;
     log(`Manifest ${manifest.artifactId}: ${manifest.chunks.length} chunks, ${manifest.byteLength} bytes`);
     store = peerFirst ? new VerifiedChunkStore(manifest) : await bootstrapArtifact(manifest);
     swarm = new PeerSwarm(value("signal"), manifest);
@@ -56,8 +58,9 @@ async function load(peerFirst: boolean): Promise<void> {
 async function infer(): Promise<void> {
   if (!modelBytes) return;
   try {
-    const result = await runSmokeInference(modelBytes, value("accelerator") as LiteRtAccelerator);
-    log(`Inference completed in ${result.elapsedMs.toFixed(2)} ms\n${JSON.stringify(result.outputs.map((output) => output.slice(0, 8)), null, 2)}`);
+    const result = await runSmokeInference(modelBytes, value("accelerator") as LiteRtAccelerator, runtimeProfile);
+    const expectation = result.expectation ? `\nExpected output: ${result.expectation.passed ? "PASS" : "FAIL"} (max error ${result.expectation.maxAbsoluteError})` : "";
+    log(`Inference completed in ${result.elapsedMs.toFixed(2)} ms${expectation}\n${JSON.stringify(result.outputs.map((output) => output.slice(0, 8)), null, 2)}`);
   } catch (error) { log(`LiteRT error: ${error instanceof Error ? error.message : String(error)}`); }
 }
 
