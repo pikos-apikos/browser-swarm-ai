@@ -6,7 +6,9 @@ import { MANIFEST_VERSION, type ArtifactManifest } from "../../../packages/proto
 import { sha256 } from "../../../packages/manifest/src/crypto.ts";
 
 const port = Number(process.env.PORT ?? 8787);
-const chunkSize = Number(process.env.CHUNK_SIZE ?? 256 * 1024);
+// Base64 is deliberately used by the inspectable v0.1 wire format. Keep the
+// encoded data plus JSON envelope safely below a 64 KiB SCTP message.
+const chunkSize = Number(process.env.CHUNK_SIZE ?? 32 * 1024);
 const modelPath = process.env.MODEL_PATH ? resolve(process.env.MODEL_PATH) : undefined;
 const rooms = new Map<string, Map<string, WebSocket>>();
 let artifact: { bytes: Uint8Array; manifest: ArtifactManifest } | undefined;
