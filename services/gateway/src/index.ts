@@ -10,6 +10,7 @@ const port = Number(process.env.PORT ?? 8787);
 // encoded data plus JSON envelope safely below a 64 KiB SCTP message.
 const chunkSize = Number(process.env.CHUNK_SIZE ?? 32 * 1024);
 const modelPath = process.env.MODEL_PATH ? resolve(process.env.MODEL_PATH) : undefined;
+const profilePath = process.env.MODEL_PROFILE_PATH ? resolve(process.env.MODEL_PROFILE_PATH) : undefined;
 const rooms = new Map<string, Map<string, WebSocket>>();
 let artifact: { bytes: Uint8Array; manifest: ArtifactManifest } | undefined;
 
@@ -57,7 +58,8 @@ async function prepareArtifact(path: string): Promise<{ bytes: Uint8Array; manif
     const slice = bytes.subarray(offset, Math.min(offset + chunkSize, bytes.length));
     chunks.push({ index, offset, length: slice.length, sha256: await sha256(slice), url: `http://localhost:${port}/chunks/${index}` });
   }
-  return { bytes, manifest: { version: MANIFEST_VERSION, artifactId: `${basename(path)}-${artifactHash.slice(0, 12)}`, mediaType: "application/vnd.google.litert-model", byteLength: bytes.length, chunkSize, sha256: artifactHash, chunks } };
+  const runtime = profilePath ? JSON.parse(await readFile(profilePath, "utf8")) : undefined;
+  return { bytes, manifest: { version: MANIFEST_VERSION, artifactId: `${basename(path)}-${artifactHash.slice(0, 12)}`, mediaType: "application/vnd.google.litert-model", byteLength: bytes.length, chunkSize, sha256: artifactHash, chunks, runtime } };
 }
 
 function json(response: any, status: number, value: unknown): void {
