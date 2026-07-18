@@ -35,7 +35,7 @@ Open `http://localhost:5173` in two browser windows:
 
 - Chunk storage is in memory; OPFS persistence belongs to v0.2.
 - Signaling is a minimal WebSocket relay with no identity or authorization.
-- Chunk responses use base64 JSON for inspectability; binary framed messages and SCTP-aware pacing belong to v0.2.
+- Chunk responses use base64 JSON for inspectability. The default chunk size is therefore a conservative 32 KiB so encoded frames remain below 64 KiB; binary framed messages and SCTP-aware pacing belong to v0.2.
 - The gateway serves one model configured at startup.
 - The smoke inference is intended for simple models whose inputs can validly be zero-filled.
 
