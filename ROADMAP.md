@@ -1,126 +1,295 @@
 # Roadmap
 
-Based on [WHITEPAPER.md](WHITEPAPER.md) and validated against current browser capabilities. See [VALIDATION.md](VALIDATION.md) for technical assessment.
+Browser Swarm AI advances through one production-oriented product spine and a separate research track.
 
-## Phase 0 — Specification & Validation
-- [x] write the minimal spec
-- [x] define manifest schema
-- [x] define peer lifecycle
-- [x] write architectural white paper
-- [x] validate assumptions against current browser capabilities
-- [ ] define session graph schema
-- [ ] define worker lease schema
-- [ ] pick one demo runtime target (recommended: WebLLM or Transformers.js)
+The product spine must remain useful without split inference. Research work is promoted only after measured evidence shows that it improves a concrete workload.
 
-## Phase 1 — Transport & Distribution (Mode B, D)
-Target: swarm download + local inference
+See [WHITEPAPER.md](WHITEPAPER.md), [VALIDATION.md](VALIDATION.md), and [IMPLEMENTATION.md](IMPLEMENTATION.md).
 
-- [ ] implement minimal tracker/signaling service
-- [ ] implement browser swarm client (WebRTC data channels)
-- [ ] implement chunk verification (Web Crypto SHA-256)
-- [ ] implement local chunk cache (IndexedDB / OPFS)
-- [ ] implement manifest parser and validator
-- [ ] implement SCTP-aware chunk scheduling (buffer backpressure, adaptive pacing)
-- [ ] demo: browser peer downloads model chunks from swarm, loads locally, performs inference
+## Principles
 
-**Validation notes:**
-- WebRTC SCTP window size is fixed at 128 KiB — implement multi-channel and adaptive pacing from the start
-- Browser storage quotas vary — implement quota checking before caching
-- Recommended chunk size: 64 KiB per message
+1. **Local inference first.** Peer-assisted delivery and persistent local execution are the baseline.
+2. **Whole-task remote execution before split inference.** It provides a simpler product and the comparison baseline.
+3. **Integrity is transport-independent.** HTTP, cache, and peers cross the same verification boundary.
+4. **Capabilities are earned by implementation.** Advertise only functions the runtime can perform.
+5. **Production hardening is continuous.** Security and reliability are not a final phase.
+6. **Research has exit criteria.** Interesting experiments do not automatically enter the protocol.
 
-## Phase 2 — Capability & Roles (Mode A, D, E)
-Target: peer role advertisement and remote inference directory
+---
 
-- [ ] implement peer capability detection (WebGPU limits, memory, storage)
-- [ ] implement role assignment based on detected capabilities
-- [ ] implement capability advertisement (bucketed to avoid fingerprinting)
-- [ ] implement remote inference directory (Mode A)
-- [ ] implement cooperative artifact hosting (Mode D)
-- [ ] implement full worker contribution (Mode E)
-- [ ] demo: weak client selects model from directory, full worker peer serves inference
+# Product Spine
 
-**Validation notes:**
-- ~78% of users have WebGPU-capable devices; 22% need WASM fallback
-- Capability values should be bucketed to coarse tiers for privacy
-- Browser background execution is severely limited — full workers need active tabs
+## v0.1 — Verified Vertical Slice
 
-## Phase 3 — Split Inference (Mode C)
-Target: attention/FFN decoupling and expert/block hosting
+**Goal:** prove the complete path from origin or peer to local LiteRT.js execution.
 
-- [ ] implement attention/FFN decoupling in runtime
-- [ ] implement activation packet serialization for split inference
-- [ ] implement session graph construction (coordinator)
-- [ ] implement worker lease issuance, heartbeat, and timeout
-- [ ] implement expert/block peer role (CPU-only FFN serving)
-- [ ] implement failover on lease expiration
-- [ ] demo: local attention + remote FFN on a 8B+ model
-- [ ] demo: MoE expert sharding across multiple peers
+- [x] TypeScript/Vite browser demo
+- [x] HTTP artifact gateway
+- [x] content-addressed manifest
+- [x] SHA-256 verification per chunk and final artifact
+- [x] WebSocket signaling and WebRTC chunk delivery
+- [x] bounded HTTP fallback
+- [x] LiteRT.js runtime backend
+- [x] deterministic micro-model recipe: `y = 2x + 1`
+- [x] runtime profile with input `3` and expected output `7`
+- [x] MobileNet V3 Small downloader with pinned SHA-256
+- [ ] execute the deterministic model in two browser contexts
+- [ ] execute MobileNet through the complete path
 
-**Validation notes:**
-- LARQL proves attention/FFN decoupling works at production quality (83 tok/s local, 6.5 tok/s remote-FFN on 31B)
-- FFN/expert serving can run CPU-only — no GPU required on remote peers
-- Session pinning is critical — avoid token-by-token peer routing
-- Expected latency: N × (RTT + compute_time) per layer group
+### Exit Criteria
 
-## Phase 4 — Coordination & Verification
-Target: full coordination layer with verification
+- [ ] input `3` produces output `7` in LiteRT.js
+- [ ] Browser B receives chunks from Browser A
+- [ ] corrupted chunks are rejected before storage or execution
+- [ ] final hashes match across HTTP and WebRTC paths
+- [ ] MobileNet runs with WebGPU and WASM fallback
 
-- [ ] implement model catalog (coordinator)
-- [ ] implement task offers with capability matching
-- [ ] implement peer reputation and scoring
-- [ ] implement rate limiting and quota policies
-- [ ] implement verification hooks (artifact, runtime, adaptation)
-- [ ] implement multi-model manifests with adapter support
-- [ ] document threat model and privacy tradeoffs
-- [ ] demo: shared batch inference with verification across heterogeneous peers
+---
 
-## Phase 5 — Adaptation (Future)
-Target: bounded browser adaptation workflows
+## v0.2 — Real Artifact Delivery
 
-- [ ] implement LoRA adapter loading and hot-swapping
-- [ ] implement bounded adaptation task framework
-- [ ] implement adaptation verification (shape checks, checkpoint hashes, mini-evaluation)
-- [ ] demo: browser peer performs personalization adapter update, publishes delta artifact
+**Goal:** make distribution persistent, resumable, efficient, and observable.
 
-**Validation notes:**
-- LoRA adapter training is within browser capability for small models
-- Adaptation is bounded and verifiable, not full fine-tuning
-- Nous Research Psyche proves distributed coordination at scale (native, not browser)
+- [ ] binary WebRTC frames instead of base64 JSON
+- [ ] `bufferedAmount` backpressure and adaptive SCTP pacing
+- [ ] bounded parallel requests and multiple peer sources
+- [ ] retry and reassignment per chunk
+- [ ] OPFS persistent chunk store
+- [ ] resume after refresh or disconnect
+- [ ] storage quota detection and chunk eviction
+- [ ] transfer progress and source metrics
 
-## Phase 6 — Production Hardening (Future)
-Target: reliability, scale, and cross-browser compatibility
+### Exit Criteria
 
-- [ ] cross-browser testing (Chrome, Firefox, Safari, Edge)
-- [ ] TURN relay integration for NAT-trapped peers
-- [ ] CDN fallback for cold-start model distribution
-- [ ] persistent storage permission flows
-- [ ] mobile browser constraints and mitigations
-- [ ] native bridge peer protocol
-- [ ] post-quantum transport encryption (ML-KEM-768)
-- [ ] performance benchmarking framework
+- [ ] refresh resumes without re-downloading verified chunks
+- [ ] interrupted transfers complete without restarting
+- [ ] peer loss causes bounded reassignment
+- [ ] an artifact of at least 250 MB completes successfully
+- [ ] benchmarks compare origin-only and peer-assisted delivery
 
-## Dependency Graph
+---
 
+## v0.3 — Real Browser Application
+
+**Goal:** deliver a demo whose value is visible without understanding the protocol.
+
+- [ ] image upload and MobileNet preprocessing
+- [ ] ImageNet labels and top-k classification
+- [ ] execution-mode indicator: cache, peer, or origin
+- [ ] peer, source, throughput, and inference metrics
+- [ ] Web Worker for hashing, reconstruction, and inference
+- [ ] locally hosted LiteRT.js WASM artifacts
+- [ ] accessible loading and failure states
+- [ ] deterministic browser integration tests
+
+### Exit Criteria
+
+- [ ] a user classifies an image after peer-assisted delivery
+- [ ] the UI proves which chunks came from each source
+- [ ] heavy work does not block the main thread
+- [ ] the demo works without a third-party runtime CDN
+
+---
+
+## v0.4 — Internet-Capable Swarm
+
+**Goal:** operate between browsers on different real-world networks.
+
+- [ ] deployable HTTPS/WSS tracker and signaling service
+- [ ] configurable STUN and TURN
+- [ ] ICE timeout and failure handling
+- [ ] peer reconnect and room rejoin
+- [ ] expiring artifact rooms
+- [ ] signaling rate limits and basic abuse controls
+- [ ] Chrome, Firefox, Safari, and Edge test matrix
+
+### Exit Criteria
+
+- [ ] browsers on different networks exchange verified chunks
+- [ ] TURN succeeds for NAT-trapped peers
+- [ ] signaling never receives model bytes, activations, or prompts
+- [ ] P2P failure degrades cleanly to origin delivery
+
+---
+
+## v0.5 — Capability and Privacy
+
+**Goal:** select peers with useful but privacy-preserving information.
+
+- [ ] detect WebGPU, WebNN, and WASM
+- [ ] bucket memory, storage, and network capacity into coarse tiers
+- [ ] advertise cached artifacts and seeding capacity
+- [ ] capability-aware peer selection
+- [ ] explicit opt-in and revocation for serving
+- [ ] delayed and scoped capability disclosure
+- [ ] fingerprinting and metadata-leakage review
+- [ ] versioned capability schema
+
+### Exit Criteria
+
+- [ ] routing never requires raw hardware identifiers
+- [ ] peers advertise only implemented capabilities
+- [ ] users can inspect and revoke participation
+- [ ] matching improves successful transfers in benchmarks
+
+---
+
+## v0.6 — Full-Worker Inference
+
+**Goal:** allow weak clients to use whole-model workers before split execution.
+
+- [ ] model and worker directory
+- [ ] whole-request remote inference
+- [ ] streaming output
+- [ ] worker leases and heartbeats
+- [ ] cancellation, concurrency, and queue limits
+- [ ] local-first and remote-fallback policy
+- [ ] prompt and execution privacy disclosure
+- [ ] active-tab worker lifecycle handling
+
+### Exit Criteria
+
+- [ ] a weak client can select and use a worker
+- [ ] worker loss fails over or terminates within a bounded interval
+- [ ] cancellation stops remote work
+- [ ] latency and reliability establish the split-inference baseline
+
+---
+
+## v0.7 — Protocol and Production Baseline
+
+**Goal:** stabilize distribution and full-worker execution as a reusable public protocol.
+
+- [ ] versioned manifest and compatibility tests
+- [ ] protocol conformance fixtures
+- [ ] signed publisher manifests
+- [ ] complete threat model
+- [ ] privacy-preserving operational telemetry
+- [ ] reproducible performance benchmarks
+- [ ] automated cross-browser CI
+- [ ] reproducible public demo deployment
+- [ ] CDN/origin cold-start fallback
+- [ ] dependency and supply-chain policy
+
+### Exit Criteria
+
+- [ ] incompatible changes fail conformance tests
+- [ ] publisher authenticity is independently verifiable
+- [ ] public benchmarks are reproducible
+- [ ] the system remains useful without split inference
+
+---
+
+# Research Track
+
+Research may begin after v0.3 but does not block the product spine.
+
+## R1 — Split-Inference Feasibility
+
+**Question:** does one stable split boundary improve a real workload over local or full-worker inference?
+
+- [ ] select one model family and one boundary
+- [ ] implement a native remote block or expert first
+- [ ] measure activation size, serialization, RTT, and compute
+- [ ] compare with local and v0.6 full-worker execution
+- [ ] document privacy leakage from activations
+- [ ] define workload-specific success and abort thresholds
+
+### Promotion Gate
+
+Proceed only if split inference enables a useful model or latency/footprint tradeoff unavailable through local or full-worker execution. A functioning but consistently worse path remains a research artifact.
+
+## R2 — Browser Split Inference
+
+- [ ] activation packet and binary transport
+- [ ] session graph schema
+- [ ] block/expert capability advertisement
+- [ ] leases, heartbeat, timeout, and bounded failover
+- [ ] stable session pinning
+- [ ] MoE expert-routing experiment
+- [ ] end-to-end latency and bandwidth report
+
+Dynamic token-by-token peer routing is out of scope. Stable coarse boundaries are required.
+
+## R3 — Execution Verification
+
+- [ ] deterministic runtime fixtures
+- [ ] selective redundant execution
+- [ ] output and activation sanity checks
+- [ ] runtime evidence where platforms expose it
+- [ ] reputation as a routing input, not proof
+- [ ] adversarial and dropout test suite
+
+Perfect trustlessness is not assumed. Verification cost must be proportional to the workload.
+
+## R4 — Bounded Adaptation
+
+- [ ] adapter artifact schema
+- [ ] LoRA loading and hot-swapping
+- [ ] bounded adaptation task format
+- [ ] delta and checkpoint hashing
+- [ ] mini-evaluation fixtures
+- [ ] base-model, data-policy, adapter, and evaluator provenance
+- [ ] publish and revoke adapter artifacts
+
+Full pretraining remains a native-worker concern.
+
+---
+
+# Continuous Engineering Tracks
+
+These apply to every release.
+
+## Security and Privacy
+
+- threat modeling and dependency review
+- signaling and transport abuse controls
+- execution-mode disclosure
+- fingerprinting minimization
+- prompt and activation privacy
+
+## Reliability
+
+- bounded timeouts and retries
+- graceful origin fallback
+- deterministic cleanup
+- disconnect and background-tab behavior
+- quota and resource limits
+
+## Compatibility
+
+- Chrome, Edge, Firefox, and Safari
+- WebGPU, WebNN, and WASM
+- desktop and mobile constraints
+- native bridges where browsers cannot remain persistent
+
+## Measurement
+
+- origin versus peer throughput
+- cache hit and resume rate
+- time to first inference
+- inference latency by accelerator
+- signaling, ICE, and TURN success rates
+- peer-dropout recovery
+
+---
+
+# Dependency Flow
+
+```text
+v0.1 Verified Slice
+  -> v0.2 Persistent Delivery
+    -> v0.3 Real Browser App
+      -> v0.4 Internet Swarm
+        -> v0.5 Capability & Privacy
+          -> v0.6 Full-Worker Inference
+            -> v0.7 Protocol Baseline
+
+v0.3 Real Browser App
+  -> R1 Split Feasibility
+    -> R2 Browser Split Inference
+      -> R3 Execution Verification
+        -> R4 Bounded Adaptation
 ```
-Phase 0 (Spec)
-  └─► Phase 1 (Transport + Distribution)
-        └─► Phase 2 (Capability + Roles)
-              ├─► Phase 3 (Split Inference)
-              │     └─► Phase 4 (Coordination + Verification)
-              │           └─► Phase 5 (Adaptation)
-              │                 └─► Phase 6 (Production)
-              └─► Phase 4 (Coordination without split inference)
-```
 
-Phase 2 can fork: split inference (Phase 3 → 4) and coordination-only (Phase 4 direct) can proceed in parallel.
-
-## Key Risks
-
-| Risk | Mitigation |
-|------|------------|
-| WebRTC SCTP throughput insufficient for split inference activations | Quantized activation packets, parallel data channels, native bridge fallback |
-| Browser storage quotas insufficient for model artifacts | OPFS with persistence permission, CDN fallback, chunk-level eviction |
-| Background tab suspension kills worker peers | Active-tab requirement for workers, native bridge peers for persistent serving |
-| Safari/Firefox WebGPU limitations | WASM CPU fallback, feature detection with graceful degradation |
-| Split inference latency makes interactive use impractical | Session pinning, local-attention-first design, coarse boundaries to minimize hops |
-| Insufficient peers to form swarms | CDN bootstrap, coordinator-driven peer discovery, TURN relay as last resort |
+The research track may inform the product spine, but it cannot destabilize the working local-first distribution path without passing its promotion gates.
