@@ -16,6 +16,21 @@ export interface ArtifactManifest {
   chunkSize: number;
   sha256: string;
   chunks: ArtifactChunk[];
+  runtime?: LiteRtRuntimeProfile;
+}
+
+export interface LiteRtRuntimeProfile {
+  backend: "litert";
+  input?: {
+    dtype: "float32" | "int32" | "uint8";
+    shape: number[];
+    values?: number[];
+    fill?: number;
+  };
+  expectedOutput?: {
+    values: number[];
+    tolerance: number;
+  };
 }
 
 export function assertManifest(value: unknown): asserts value is ArtifactManifest {
