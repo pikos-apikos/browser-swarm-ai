@@ -1,0 +1,71 @@
+# v0.1 Vertical Slice
+
+This branch implements the first end-to-end Browser Swarm AI path:
+
+```text
+.tflite file -> HTTP gateway -> hashed chunks -> Browser A
+                                      |             |
+                                      |         WebRTC seeder
+                                      |             |
+                                      +--------> Browser B
+                                                    |
+                                             SHA-256 verify
+                                                    |
+                                             reconstruct bytes
+                                                    |
+                                               LiteRT.js
+```
+
+## Run
+
+Requirements: Node.js 20.19+ and a LiteRT-compatible `.tflite` model.
+
+### Deterministic micro-model
+
+On Linux with Python 3.11:
+
+```bash
+python3.11 -m venv .venv
+source .venv/bin/activate
+pip install -r models/micro/requirements.txt
+npm run model:micro
+MODEL_PATH=models/generated/micro.tflite \
+MODEL_PROFILE_PATH=models/generated/micro.profile.json npm run dev
+```
+
+The model computes `y = 2x + 1`. Its profile supplies input `3` and requires output `7`, turning the browser run into a deterministic integration check.
+
+### MobileNet V3 Small
+
+```bash
+npm run model:mobilenet
+MODEL_PATH=models/generated/mobilenet-v3-small-dynamic-int8.tflite \
+MODEL_PROFILE_PATH=models/generated/mobilenet-v3-small.profile.json npm run dev
+```
+
+The downloader verifies the published SHA-256 before saving the 2.74 MB dynamic-INT8 artifact. The current profile performs a zero-filled tensor smoke inference; image preprocessing and ImageNet labels are the next demo increment.
+
+### Any compatible model
+
+```bash
+npm install
+MODEL_PATH=/absolute/path/to/model.tflite npm run dev
+```
+
+Open `http://localhost:5173` in two browser windows:
+
+1. In Browser A, select **Bootstrap from HTTP**. It downloads and verifies every chunk, then joins the artifact room as a seeder.
+2. In Browser B, select **Load peer-first**. It requests each chunk from Browser A through a WebRTC data channel. If no peer responds within four seconds, that chunk falls back to HTTP.
+3. Select an accelerator and run the LiteRT smoke inference. A runtime profile may provide deterministic inputs and expected outputs; otherwise the demo creates zero-valued tensors from the model's declared input shapes.
+
+## What is deliberately small
+
+- Chunk storage is in memory; OPFS persistence belongs to v0.2.
+- Signaling is a minimal WebSocket relay with no identity or authorization.
+- Chunk responses use base64 JSON for inspectability. The default chunk size is therefore a conservative 32 KiB so encoded frames remain below 64 KiB; binary framed messages and SCTP-aware pacing belong to v0.2.
+- The gateway serves one model configured at startup.
+- Models without a runtime profile still use zero-filled inputs and are intended only for compilation/inference smoke checks.
+
+## Integrity boundary
+
+Every received chunk is verified before entering `VerifiedChunkStore`. Reconstruction is allowed only when all manifest chunks exist, and the final artifact hash is verified again before LiteRT receives the bytes. Peer delivery and HTTP delivery therefore share the same trust boundary.

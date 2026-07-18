@@ -1,0 +1,29 @@
+{
+  "name": "browser-swarm-ai",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "concurrently -n gateway,web -c magenta,cyan \"npm:dev:gateway\" \"npm:dev:web\"",
+    "dev:gateway": "tsx services/gateway/src/index.ts",
+    "dev:web": "vite --config vite.config.ts",
+    "model:micro": "python models/micro/generate.py",
+    "model:mobilenet": "node models/mobilenet/download.mjs",
+    "build": "tsc --noEmit && vite build --config vite.config.ts",
+    "test": "vitest run --config vitest.config.ts",
+    "check": "npm run test && npm run build"
+  },
+  "dependencies": {
+    "@litertjs/core": "2.5.3",
+    "ws": "8.21.1"
+  },
+  "devDependencies": {
+    "@types/node": "^24.0.0",
+    "@types/ws": "^8.18.0",
+    "concurrently": "^9.2.1",
+    "tsx": "4.23.1",
+    "typescript": "^5.9.3",
+    "vite": "8.1.5",
+    "vitest": "4.1.10"
+  }
+}
